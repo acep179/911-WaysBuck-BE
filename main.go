@@ -20,7 +20,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	routes.RouteInit(r.PathPrefix("api/v1").Subrouter())
+	routes.RouteInit(r.PathPrefix("/api/v1").Subrouter())
 
 	fmt.Println("server running at port 5000")
 	http.ListenAndServe("localhost:5000", r)
