@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"waysbuck/database"
 	"waysbuck/pkg/mysql"
+	"waysbuck/routes"
 
 	"github.com/gorilla/mux"
 )
@@ -19,8 +20,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	port := 5000
+	routes.RouteInit(r.PathPrefix("api/v1").Subrouter())
 
-	fmt.Println("server running at port ", port)
+	fmt.Println("server running at port 5000")
 	http.ListenAndServe("localhost:5000", r)
 }
