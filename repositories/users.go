@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	FindUsers() ([]models.User, error)
 	GetUser(ID int) (models.User, error)
+	CreateUser(models.User) (models.User, error)
 }
 
 type repository struct {
@@ -30,6 +31,12 @@ func (r *repository) GetUser(ID int) (models.User, error) {
 	var user models.User
 
 	err := r.db.First(&user, ID).Error
+
+	return user, err
+}
+
+func (r *repository) CreateUser(user models.User) (models.User, error) {
+	err := r.db.Create(&user).Error
 
 	return user, err
 }
