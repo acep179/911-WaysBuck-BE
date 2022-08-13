@@ -1,4 +1,4 @@
-@startuml
+@startuml Waysbuck
 
 entity Users {
     * id: INTEGER
