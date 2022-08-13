@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	productsdto "waysbuck/dto/products"
 	dto "waysbuck/dto/result"
-	usersdto "waysbuck/dto/users"
 	"waysbuck/models"
 	"waysbuck/repositories"
 
@@ -13,19 +13,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type handlerUser struct {
-	UserRepository repositories.UserRepository
+type handlerProduct struct {
+	ProductRepository repositories.ProductRepository
 }
 
-func HandlerUser(UserRepository repositories.UserRepository) *handlerUser {
-	return &handlerUser{UserRepository}
+func HandlerProduct(ProductRepository repositories.ProductRepository) *handlerProduct {
+	return &handlerProduct{ProductRepository}
 }
 
-func (h *handlerUser) FindUsers(w http.ResponseWriter, r *http.Request) {
+func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	users, err := h.UserRepository.FindUsers()
+	products, err := h.ProductRepository.FindProducts()
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -36,18 +36,18 @@ func (h *handlerUser) FindUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: users}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: products}
 
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	user, err := h.UserRepository.GetUser(id)
+	product, err := h.ProductRepository.GetProduct(id)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -57,16 +57,16 @@ func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponse(user)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(product)}
 
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(usersdto.CreateUserRequest)
+	request := new(productsdto.CreateProductRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -84,14 +84,13 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.User{
-		FullName: request.FullName,
-		Email:    request.Email,
-		Password: request.Password,
-		Image:    request.Image,
+	product := models.Product{
+		Title: request.Title,
+		Price: request.Price,
+		Image: request.Image,
 	}
 
-	data, err := h.UserRepository.CreateUser(user)
+	data, err := h.ProductRepository.CreateProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -99,15 +98,15 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponse(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(usersdto.CreateUserRequest)
+	request := new(productsdto.CreateProductRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -117,7 +116,7 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.UserRepository.GetUser(id)
+	product, err := h.ProductRepository.GetProduct(id)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -126,23 +125,19 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(request.FullName) > 0 {
-		user.FullName = request.FullName
+	if len(request.Title) > 0 {
+		product.Title = request.Title
 	}
 
-	if len(request.Email) > 0 {
-		user.Email = request.Email
-	}
-
-	if len(request.Password) > 0 {
-		user.Password = request.Password
+	if request.Price > 0 {
+		product.Price = request.Price
 	}
 
 	if len(request.Image) > 0 {
-		user.Image = request.Image
+		product.Image = request.Image
 	}
 
-	data, err := h.UserRepository.UpdateUser(user)
+	data, err := h.ProductRepository.UpdateProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -151,16 +146,16 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponse(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *handlerProduct) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.UserRepository.GetUser(id)
+	product, err := h.ProductRepository.GetProduct(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -168,7 +163,7 @@ func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.UserRepository.DeleteUser(user)
+	data, err := h.ProductRepository.DeleteProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -177,15 +172,15 @@ func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponse(data)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func convertResponse(u models.User) usersdto.UserResponse {
-	return usersdto.UserResponse{
-		ID:       u.ID,
-		FullName: u.FullName,
-		Email:    u.Email,
-		Image:    u.Image,
+func convertResponseProduct(u models.Product) productsdto.ProductResponse {
+	return productsdto.ProductResponse{
+		ID:    u.ID,
+		Title: u.Title,
+		Price: u.Price,
+		Image: u.Image,
 	}
 }
