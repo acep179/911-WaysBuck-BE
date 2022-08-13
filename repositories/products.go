@@ -7,7 +7,7 @@ import (
 )
 
 type ProductRepository interface {
-	FindProducts() ([]models.User, error)
+	FindProducts() ([]models.Product, error)
 	GetProduct(ID int) (models.Product, error)
 	CreateProduct(models.Product) (models.Product, error)
 	UpdateProduct(models.Product) (models.Product, error)

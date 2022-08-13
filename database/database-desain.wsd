@@ -1,0 +1,47 @@
+@startuml
+
+entity Users {
+    * id: INTEGER
+    --
+    * full_name: VARCHAR
+    * email: VARCHAR
+    * password: VARCHAR
+    * status: VARCHAR
+}
+
+entity Profile {
+    * id: INT
+    --
+    image: VARCHAR
+    address: VARCHAR
+    * id_user: VARCHAR
+}
+
+entity Products {
+    * id: INT
+    --
+    * title: VARCHAR
+    * price: VARCHAR
+    * image: VARCHAR
+}
+
+entity Topings {
+    * id: INT
+    --
+    * title: VARCHAR
+    * price: VARCHAR
+    * image: VARCHAR
+}
+
+entity Transaction {
+    * id: INT
+    --
+    * id_buyer: INT
+    * id_product: INT
+    * id_topings: INT [ ]
+}
+
+Users ||--|| Profile
+Transaction }o--o{ Topings
+Transaction }o--o{ Products
+Transaction }o--o{ Users
