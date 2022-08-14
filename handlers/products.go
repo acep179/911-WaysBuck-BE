@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	productsdto "waysbuck/dto/products"
@@ -10,6 +11,7 @@ import (
 	"waysbuck/repositories"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
 
@@ -66,6 +68,11 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userId := int(userInfo["id"].(float64))
+
+	fmt.Println(userId)
+
 	request := new(productsdto.CreateProductRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -85,9 +92,10 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	product := models.Product{
-		Title: request.Title,
-		Price: request.Price,
-		Image: request.Image,
+		Title:  request.Title,
+		Price:  request.Price,
+		Image:  request.Image,
+		UserID: userId,
 	}
 
 	data, err := h.ProductRepository.CreateProduct(product)
@@ -178,9 +186,10 @@ func (h *handlerProduct) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 func convertResponseProduct(u models.Product) productsdto.ProductResponse {
 	return productsdto.ProductResponse{
-		ID:    u.ID,
-		Title: u.Title,
-		Price: u.Price,
-		Image: u.Image,
+		ID:     u.ID,
+		Title:  u.Title,
+		Price:  u.Price,
+		Image:  u.Image,
+		UserID: u.UserID,
 	}
 }

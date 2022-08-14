@@ -84,10 +84,19 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var userStatus string
+
+	if request.Status == "" {
+		userStatus = "customer"
+	} else {
+		userStatus = request.Status
+	}
+
 	user := models.User{
 		FullName: request.FullName,
 		Email:    request.Email,
 		Password: request.Password,
+		Status:   userStatus,
 		Image:    request.Image,
 	}
 
@@ -142,6 +151,10 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		user.Image = request.Image
 	}
 
+	if len(request.Status) > 0 {
+		user.Status = request.Status
+	}
+
 	data, err := h.UserRepository.UpdateUser(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -187,5 +200,6 @@ func convertResponse(u models.User) usersdto.UserResponse {
 		FullName: u.FullName,
 		Email:    u.Email,
 		Image:    u.Image,
+		Status:   u.Status,
 	}
 }

@@ -7,6 +7,7 @@ type Product struct {
 	Title     string    `json:"title" gorm:"type: varchar(255)"`
 	Price     int       `json:"price" gorm:"type: varchar(255)"`
 	Image     string    `json:"image" gorm:"type: varchar(255)"`
+	UserID    int       `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
