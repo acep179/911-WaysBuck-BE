@@ -57,7 +57,7 @@ func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: convertUsersResponse(user)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: user}
 
 	json.NewEncoder(w).Encode(response)
 }
