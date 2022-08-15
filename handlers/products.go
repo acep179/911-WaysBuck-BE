@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	productsdto "waysbuck/dto/products"
@@ -14,6 +13,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
+
+var path_file = "http://localhost:5000/uploads/"
 
 type handlerProduct struct {
 	ProductRepository repositories.ProductRepository
@@ -28,6 +29,10 @@ func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	products, err := h.ProductRepository.FindProducts()
+
+	for i, p := range products {
+		products[i].Image = path_file + p.Image
+	}
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -51,6 +56,8 @@ func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.ProductRepository.GetProduct(id)
 
+	product.Image = path_file + product.Image
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
@@ -71,15 +78,14 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
 	userId := int(userInfo["id"].(float64))
 
-	fmt.Println(userId)
+	dataContex := r.Context().Value("dataFile") // add this code
+	filename := dataContex.(string)
 
-	request := new(productsdto.CreateProductRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	request := productsdto.CreateProductRequest{
+		Title: r.FormValue("title"),
+		Price: price,
+		Image: filename,
 	}
 
 	validation := validator.New()
