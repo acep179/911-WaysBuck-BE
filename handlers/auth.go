@@ -29,6 +29,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	//. Get Register Request (From Field)
 	request := new(authdto.RegisterRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -38,6 +39,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//. Validation Empty Field
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
@@ -47,6 +49,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//. Hashing Password
 	password, err := bcrypt.HashingPassword(request.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -54,6 +57,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 	}
 
+	//. Convert to Struck Models.User for Send to Repository
 	user := models.User{
 		FullName: request.FullName,
 		Email:    request.Email,
@@ -61,6 +65,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		Status:   "customer",
 	}
 
+	//. Processing Register at Auth Repository
 	data, err := h.AuthRepository.Register(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -68,6 +73,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 	}
 
+	//. Convert to Struck Register Response
 	registerResponse := authdto.RegisterResponse{
 		ID:       data.ID,
 		FullName: data.FullName,
@@ -84,6 +90,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	//. Get Login Request (From Field)
 	request := new(authdto.LoginRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -92,6 +99,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//. Convert to Struck Models.User for Send to Repository
 	user := models.User{
 		Email:    request.Email,
 		Password: request.Password,
@@ -127,6 +135,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//. Convert to Struck LoginResponse
 	loginResponse := authdto.LoginResponse{
 		FullName: user.FullName,
 		Email:    user.Email,

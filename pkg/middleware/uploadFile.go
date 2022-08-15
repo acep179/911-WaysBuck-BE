@@ -31,7 +31,7 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		tempFile, err := ioutil.TempFile("uploads", "image-*-"+handler.Filename+".png")
+		tempFile, err := ioutil.TempFile("uploads", "image-*-"+handler.Filename)
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("path upload error")

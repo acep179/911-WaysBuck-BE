@@ -41,7 +41,12 @@ entity Transaction {
     * id_topings: INT [ ]
 }
 
+'ctt  Zero or One	|o--
+'ctt Exactly One	||--
+'ctt Zero or Many	}o--
+'ctt One or Many	}|--
+
 Users ||--|| Profile
 Transaction }o--o{ Topings
-Transaction }o--o{ Products
-Transaction }o--o{ Users
+Transaction }o--|| Products
+Transaction }o--|| Users

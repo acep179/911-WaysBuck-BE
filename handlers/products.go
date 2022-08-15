@@ -78,7 +78,7 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
 	userId := int(userInfo["id"].(float64))
 
-	dataContex := r.Context().Value("dataFile") // add this code
+	dataContex := r.Context().Value("dataFile")
 	filename := dataContex.(string)
 
 	price, _ := strconv.Atoi(r.FormValue("price"))
@@ -120,13 +120,14 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(productsdto.CreateProductRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
 
-		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	request := productsdto.UpdateProductRequest{
+		Title: r.FormValue("title"),
+		Price: price,
+		Image: filename,
 	}
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
