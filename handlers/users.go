@@ -97,7 +97,6 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:    request.Email,
 		Password: request.Password,
 		Status:   userStatus,
-		Image:    request.Image,
 	}
 
 	data, err := h.UserRepository.CreateUser(user)
@@ -145,10 +144,6 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if len(request.Password) > 0 {
 		user.Password = request.Password
-	}
-
-	if len(request.Image) > 0 {
-		user.Image = request.Image
 	}
 
 	if len(request.Status) > 0 {
@@ -199,7 +194,6 @@ func convertUsersResponse(u models.User) usersdto.UserResponse {
 		ID:       u.ID,
 		FullName: u.FullName,
 		Email:    u.Email,
-		Image:    u.Image,
 		Status:   u.Status,
 	}
 }
