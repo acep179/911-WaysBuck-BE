@@ -66,7 +66,7 @@ func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: convertProductsResponse(product)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: product}
 
 	json.NewEncoder(w).Encode(response)
 }
@@ -193,10 +193,9 @@ func (h *handlerProduct) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 func convertProductsResponse(u models.Product) productsdto.ProductResponse {
 	return productsdto.ProductResponse{
-		ID:     u.ID,
-		Title:  u.Title,
-		Price:  u.Price,
-		Image:  u.Image,
-		UserID: u.UserID,
+		ID:    u.ID,
+		Title: u.Title,
+		Price: u.Price,
+		Image: u.Image,
 	}
 }
