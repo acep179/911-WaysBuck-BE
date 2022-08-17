@@ -29,31 +29,35 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	//. Get Register Request (From Field)
 	request := new(authdto.RegisterRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
+	//. Validation Empty Field
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
+	//. Hashing Password
 	password, err := bcrypt.HashingPassword(request.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
 
+	//. Convert to Struck Models.User for Send to Repository
 	user := models.User{
 		FullName: request.FullName,
 		Email:    request.Email,
@@ -61,13 +65,15 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		Status:   "customer",
 	}
 
+	//. Processing Register at Auth Repository
 	data, err := h.AuthRepository.Register(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
 
+	//. Convert to Struck Register Response
 	registerResponse := authdto.RegisterResponse{
 		ID:       data.ID,
 		FullName: data.FullName,
@@ -76,7 +82,7 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: registerResponse}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: registerResponse}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -84,14 +90,16 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	//. Get Login Request (From Field)
 	request := new(authdto.LoginRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
+	//. Convert to Struck Models.User for Send to Repository
 	user := models.User{
 		Email:    request.Email,
 		Password: request.Password,
@@ -101,7 +109,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.AuthRepository.Login(user.Email)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -110,7 +118,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	isValid := bcrypt.CheckPasswordHash(request.Password, user.Password)
 	if !isValid {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "wrong email or password"}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: "wrong email or password"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -127,6 +135,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//. Convert to Struck LoginResponse
 	loginResponse := authdto.LoginResponse{
 		FullName: user.FullName,
 		Email:    user.Email,
@@ -135,7 +144,7 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	response := dto.SuccessResult{Code: http.StatusOK, Data: loginResponse}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: loginResponse}
 	json.NewEncoder(w).Encode(response)
 
 }

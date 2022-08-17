@@ -26,12 +26,12 @@ func UploadFile(next http.HandlerFunc) http.HandlerFunc {
 		r.ParseMultipartForm(MAX_UPLOAD_SIZE)
 		if r.ContentLength > MAX_UPLOAD_SIZE {
 			w.WriteHeader(http.StatusBadRequest)
-			response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Max size in 1mb"}
+			response := dto.ErrorResult{Status: http.StatusBadRequest, Message: "Max size in 1mb"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
 
-		tempFile, err := ioutil.TempFile("uploads", "image-*-"+handler.Filename+".png")
+		tempFile, err := ioutil.TempFile("uploads", "image-*-"+handler.Filename)
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("path upload error")

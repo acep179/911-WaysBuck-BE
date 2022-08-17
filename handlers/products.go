@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	productsdto "waysbuck/dto/products"
@@ -14,6 +13,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
+
+var path_file = "http://localhost:5000/uploads/"
 
 type handlerProduct struct {
 	ProductRepository repositories.ProductRepository
@@ -29,16 +30,20 @@ func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.ProductRepository.FindProducts()
 
+	for i, p := range products {
+		products[i].Image = path_file + p.Image
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 
 		json.NewEncoder(w).Encode(response)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: products}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: products}
 
 	json.NewEncoder(w).Encode(response)
 }
@@ -51,15 +56,17 @@ func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.ProductRepository.GetProduct(id)
 
+	product.Image = path_file + product.Image
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(product)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: product}
 
 	json.NewEncoder(w).Encode(response)
 }
@@ -71,22 +78,21 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
 	userId := int(userInfo["id"].(float64))
 
-	fmt.Println(userId)
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
 
-	request := new(productsdto.CreateProductRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	request := productsdto.CreateProductRequest{
+		Title: r.FormValue("title"),
+		Price: price,
+		Image: filename,
 	}
 
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -101,12 +107,12 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	data, err := h.ProductRepository.CreateProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertProductsResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -114,13 +120,14 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(productsdto.CreateProductRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
 
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	request := productsdto.UpdateProductRequest{
+		Title: r.FormValue("title"),
+		Price: price,
+		Image: filename,
 	}
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
@@ -128,7 +135,7 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -148,13 +155,13 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	data, err := h.ProductRepository.UpdateProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertProductsResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -166,7 +173,7 @@ func (h *handlerProduct) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	product, err := h.ProductRepository.GetProduct(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -174,22 +181,21 @@ func (h *handlerProduct) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	data, err := h.ProductRepository.DeleteProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertProductsResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func convertResponseProduct(u models.Product) productsdto.ProductResponse {
+func convertProductsResponse(u models.Product) productsdto.ProductResponse {
 	return productsdto.ProductResponse{
-		ID:     u.ID,
-		Title:  u.Title,
-		Price:  u.Price,
-		Image:  u.Image,
-		UserID: u.UserID,
+		ID:    u.ID,
+		Title: u.Title,
+		Price: u.Price,
+		Image: u.Image,
 	}
 }
