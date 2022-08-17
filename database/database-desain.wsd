@@ -1,6 +1,6 @@
 @startuml Waysbuck
 
-entity Users {
+entity users {
     * id: INTEGER
     --
     * full_name: VARCHAR
@@ -9,39 +9,62 @@ entity Users {
     * status: VARCHAR
 }
 
-entity Profile {
+entity profile {
     * id: INT
     --
     image: VARCHAR
     address: VARCHAR
-    * id_user: VARCHAR
+    * user_id: VARCHAR
 }
 
-entity Products {
+entity products {
     * id: INT
     --
     * title: VARCHAR
     * price: VARCHAR
     * image: VARCHAR
+    * user_id
 }
 
-entity Topings {
+entity toppings {
     * id: INT
     --
     * title: VARCHAR
     * price: VARCHAR
     * image: VARCHAR
+    * user_id: VARCHAR
 }
 
-entity Transaction {
+entity topping_cart {
+    id INT
+    --
+    cart_id
+    topping_id
+}
+
+entity cart {
     * id: INT
     --
-    * id_buyer: INT
-    * id_product: INT
-    * id_topings: INT [ ]
+    * product_id: INT
+    * transaction_id: INT
+    * toppings_id: INT [ ]
 }
 
-Users ||--|| Profile
-Transaction }o--o{ Topings
-Transaction }o--o{ Products
-Transaction }o--o{ Users
+entity transaction {
+    * id: INT
+    --
+    * buyer_id: INT
+}
+
+'ctt  Zero or One	|o--
+'ctt Exactly One	||--
+'ctt Zero or Many	}o--
+'ctt One or Many	}|--
+
+cart }o--|| transaction
+users ||--|| profile
+users ||--|{ products
+transaction }o--|| users
+cart }o--o{ topping_cart
+topping_cart }o--o{toppings
+cart }o--|| products
