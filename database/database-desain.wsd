@@ -46,6 +46,7 @@ entity cart {
     * id: INT
     --
     * product_id: INT
+    * transaction_id: INT
     * toppings_id: INT [ ]
 }
 
@@ -53,7 +54,6 @@ entity transaction {
     * id: INT
     --
     * buyer_id: INT
-    * cart_id: INT
 }
 
 'ctt  Zero or One	|o--
@@ -63,6 +63,7 @@ entity transaction {
 
 cart }o--|| transaction
 users ||--|| profile
+users ||--|{ products
 transaction }o--|| users
 cart }o--o{ topping_cart
 topping_cart }o--o{toppings
