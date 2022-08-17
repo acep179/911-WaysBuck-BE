@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	dto "waysbuck/dto/result"
-	usersdto "waysbuck/dto/users"
+	toppingsdto "waysbuck/dto/toppings"
 	"waysbuck/models"
 	"waysbuck/repositories"
 
@@ -13,42 +13,41 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type handlerUser struct {
-	UserRepository repositories.UserRepository
+type handlerTopping struct {
+	ToppingRepository repositories.ToppingRepository
 }
 
-func HandlerUser(UserRepository repositories.UserRepository) *handlerUser {
-	return &handlerUser{UserRepository}
+func HandlerTopping(ToppingRepository repositories.ToppingRepository) *handlerTopping {
+	return &handlerTopping{ToppingRepository}
 }
 
-func (h *handlerUser) FindUsers(w http.ResponseWriter, r *http.Request) {
+var path_fileTopping = "http://localhost:5000/uploads/"
 
+func (h *handlerTopping) FindToppings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	users, err := h.UserRepository.FindUsers()
-
+	toppings, err := h.ToppingRepository.FindToppings()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
-
 		json.NewEncoder(w).Encode(response)
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: users}
+	for i, p := range toppings {
+		toppings[i].Image = path_fileTopping + p.Image
+	}
 
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Status: http.StatusOK, Data: toppings}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
-
+func (h *handlerTopping) GetTopping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	user, err := h.UserRepository.GetUser(id)
-
+	topping, err := h.ToppingRepository.GetTopping(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
@@ -56,23 +55,24 @@ func (h *handlerUser) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: user}
+	topping.Image = path_fileTopping + topping.Image
 
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponse(topping)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
-
+func (h *handlerTopping) CreateTopping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(usersdto.CreateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
 
-		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
+	price, _ := strconv.Atoi(r.FormValue("price"))
+	request := toppingsdto.CreateToppingRequest{
+		Title: r.FormValue("title"),
+		Price: price,
+		Image: filename,
 	}
 
 	validation := validator.New()
@@ -84,49 +84,40 @@ func (h *handlerUser) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userStatus string
-
-	if request.Status == "" {
-		userStatus = "customer"
-	} else {
-		userStatus = request.Status
+	topping := models.Topping{
+		Title: request.Title,
+		Price: request.Price,
+		Image: request.Image,
 	}
 
-	user := models.User{
-		FullName: request.FullName,
-		Email:    request.Email,
-		Password: request.Password,
-		Status:   userStatus,
-	}
-
-	data, err := h.UserRepository.CreateUser(user)
+	data, err := h.ToppingRepository.CreateTopping(topping)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
+		return
 	}
 
+	topping, _ = h.ToppingRepository.GetTopping(topping.ID)
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: convertUsersResponse(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
-
+func (h *handlerTopping) UpdateTopping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(usersdto.CreateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+	request := new(toppingsdto.UpdateToppingRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.UserRepository.GetUser(id)
-
+	topping, err := h.ToppingRepository.GetTopping(int(id))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
@@ -134,23 +125,19 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(request.FullName) > 0 {
-		user.FullName = request.FullName
+	if request.Title != "" {
+		topping.Title = request.Title
 	}
 
-	if len(request.Email) > 0 {
-		user.Email = request.Email
+	if request.Price != 0 {
+		topping.Price = request.Price
 	}
 
-	if len(request.Password) > 0 {
-		user.Password = request.Password
+	if request.Image != "" {
+		topping.Image = request.Image
 	}
 
-	if len(request.Status) > 0 {
-		user.Status = request.Status
-	}
-
-	data, err := h.UserRepository.UpdateUser(user)
+	data, err := h.ToppingRepository.UpdateTopping(topping)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
@@ -159,16 +146,15 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: convertUsersResponse(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
-
+func (h *handlerTopping) DeleteTopping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.UserRepository.GetUser(id)
+	topping, err := h.ToppingRepository.GetTopping(int(id))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
@@ -176,7 +162,7 @@ func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.UserRepository.DeleteUser(user)
+	data, err := h.ToppingRepository.DeleteTopping(topping)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
@@ -185,15 +171,15 @@ func (h *handlerUser) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: convertUsersResponse(data)}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponse(data)}
 	json.NewEncoder(w).Encode(response)
 }
 
-func convertUsersResponse(u models.User) usersdto.UserResponse {
-	return usersdto.UserResponse{
-		ID:       u.ID,
-		FullName: u.FullName,
-		Email:    u.Email,
-		Status:   u.Status,
+func convertResponse(t models.Topping) toppingsdto.ToppingResponse {
+	return toppingsdto.ToppingResponse{
+		ID:    t.ID,
+		Title: t.Title,
+		Price: t.Price,
+		Image: t.Image,
 	}
 }
