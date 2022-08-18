@@ -1,4 +1,4 @@
-// Create package handlers here ...
+//. package handlers
 package handlers
 
 import (
@@ -10,20 +10,22 @@ import (
 	"waysbuck/models"
 	"waysbuck/repositories"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
 
-// Declare handlerProfile struct here ...
+//. Declare handlerProfile struct
 type handlerProfile struct {
 	ProfileRepository repositories.ProfileRepository
 }
 
-// HandlerProfile function here ...
+//. HandlerProfile function
 func HandlerProfile(ProfileRepository repositories.ProfileRepository) *handlerProfile {
 	return &handlerProfile{ProfileRepository}
 }
 
-// Create GetProfile method here ...
+//. GetProfile method
 func (h *handlerProfile) GetProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -43,7 +45,52 @@ func (h *handlerProfile) GetProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Create convertResponseProfile function here ...
+//. Create Profile
+func (h *handlerProfile) CreateProfile(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userId := int(userInfo["id"].(float64))
+
+	dataContex := r.Context().Value("dataFile")
+	filename := dataContex.(string)
+
+	request := profiledto.ProfileRequest{
+		Image:   filename,
+		Phone:   r.FormValue("phone"),
+		Address: r.FormValue("address"),
+	}
+
+	validation := validator.New()
+	err := validation.Struct(request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	profile := models.Profile{
+		Image:   request.Image,
+		Phone:   request.Phone,
+		Address: request.Address,
+		UserID:  userId,
+	}
+
+	data, err := h.ProfileRepository.CreateProfile(profile)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponseProfile(data)}
+	json.NewEncoder(w).Encode(response)
+}
+
+//. convertResponseProfile function
 func convertResponseProfile(u models.Profile) profiledto.ProfileResponse {
 	return profiledto.ProfileResponse{
 		ID:      u.ID,
