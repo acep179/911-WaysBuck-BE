@@ -16,7 +16,7 @@ func RepositoryCart(db *gorm.DB) *repository {
 
 func (r *repository) FindCarts() ([]models.Cart, error) {
 	var carts []models.Cart
-	err := r.db.Preload("Product").Find(&carts).Error
+	err := r.db.Preload("Product").Preload("Toppings").Find(&carts).Error
 
 	return carts, err
 }

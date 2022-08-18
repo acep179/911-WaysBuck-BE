@@ -8,15 +8,7 @@ type Cart struct {
 	Product       ProductCartRel     `json:"product"`
 	TransactionID int                `json:"-"`
 	Transaction   TransactionCartRel `json:"-"`
-	Topping       []Topping          `json:"category" gorm:"many2many:cart_toppings"`
+	Toppings      []Topping          `json:"toppings" gorm:"many2many:cart_toppings"`
 	CreatedAt     time.Time          `json:"-"`
 	UpdatedAt     time.Time          `json:"-"`
-}
-
-type CartTransaction struct {
-	ID int `json:"prouduct_id"`
-}
-
-func (CartTransaction) TableName() string {
-	return "carts"
 }

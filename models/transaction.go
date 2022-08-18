@@ -7,6 +7,7 @@ type Transaction struct {
 	Amount    int            `json:"amount"`
 	UserID    int            `json:"user_id"`
 	User      UserProfileRel `json:"user"`
+	Carts     []Cart         `json:"cart"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 }
@@ -14,7 +15,9 @@ type Transaction struct {
 type TransactionCartRel struct {
 	ID     int `json:"id"`
 	UserId int `json:"user_id"`
+	Amount int `json:"amount"`
 }
+
 type TransactionUserRel struct {
 	ID     int `json:"id"`
 	UserId int `json:"user_id"`
