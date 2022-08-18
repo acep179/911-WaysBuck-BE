@@ -7,6 +7,7 @@ import (
 	"waysbuck/pkg/mysql"
 	"waysbuck/routes"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -30,6 +31,16 @@ func main() {
 
 	r.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
-	fmt.Println("server running at port 5000")
+	// Setup allowed Header, Method, and Origin for CORS on this below code ...
+	var AllowedHeaders = handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	var AllowedMethods = handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "PATCH", "DELETE"})
+	var AllowedOrigins = handlers.AllowedOrigins([]string{"*"})
+
+	var port = "5000"
+	fmt.Println("server running localhost:" + port)
+
+	// Embed the setup allowed in 2 parameter on this below code ...
+	http.ListenAndServe("localhost:"+port, handlers.CORS(AllowedHeaders, AllowedMethods, AllowedOrigins)(r))
+
 	http.ListenAndServe("localhost:5000", r)
 }
