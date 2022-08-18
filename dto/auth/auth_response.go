@@ -1,5 +1,7 @@
 package authdto
 
+import "waysbuck/models"
+
 type RegisterResponse struct {
 	ID       int    `json:"id"`
 	FullName string `json:"fullName" form:"name" validate:"required"`
@@ -8,8 +10,10 @@ type RegisterResponse struct {
 }
 
 type LoginResponse struct {
-	FullName string `gorm:"type: varchar(255)" json:"fullName"`
-	Email    string `gorm:"type: varchar(255)" json:"email"`
-	Password string `gorm:"type: varchar(255)" json:"password"`
-	Token    string `gorm:"type: varchar(255)" json:"token"`
+	ID       int                    `gorm:"type: int" json:"id"`
+	FullName string                 `gorm:"type: varchar(255)" json:"fullName"`
+	Email    string                 `gorm:"type: varchar(255)" json:"email"`
+	Status   string                 `gorm:"type: varchar(255)" json:"status"`
+	Token    string                 `gorm:"type: varchar(255)" json:"token"`
+	Profile  models.ProfileResponse `json:"profile"`
 }

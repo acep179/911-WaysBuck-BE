@@ -33,7 +33,6 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 	request := new(authdto.RegisterRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-
 		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
@@ -137,10 +136,12 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 
 	//. Convert to Struck LoginResponse
 	loginResponse := authdto.LoginResponse{
+		ID:       user.ID,
 		FullName: user.FullName,
 		Email:    user.Email,
-		Password: user.Password,
+		Status:   user.Status,
 		Token:    token,
+		Profile:  user.Profile,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

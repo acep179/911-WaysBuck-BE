@@ -22,6 +22,7 @@ type UserProfileRel struct {
 	ID       int    `json:"id"`
 	FullName string `json:"fullName"`
 	Email    string `json:"email"`
+	Status   string `json:"status"`
 }
 
 func (UserProfileRel) TableName() string {
