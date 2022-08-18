@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 	productsdto "waysbuck/dto/products"
 	dto "waysbuck/dto/result"
@@ -14,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var path_file = "http://localhost:5000/uploads/"
+// var path_file = "http://localhost:5000/uploads/"
 
 type handlerProduct struct {
 	ProductRepository repositories.ProductRepository
@@ -31,7 +32,7 @@ func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := h.ProductRepository.FindProducts()
 
 	for i, p := range products {
-		products[i].Image = path_file + p.Image
+		products[i].Image = os.Getenv("PATH_FILE") + p.Image
 	}
 
 	if err != nil {
@@ -56,7 +57,7 @@ func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.ProductRepository.GetProduct(id)
 
-	product.Image = path_file + product.Image
+	product.Image = os.Getenv("PATH_FILE") + product.Image
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
