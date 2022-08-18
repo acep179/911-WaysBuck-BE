@@ -27,7 +27,7 @@ func (r *repository) FindUsers() ([]models.User, error) {
 
 func (r *repository) GetUser(ID int) (models.User, error) {
 	var user models.User
-	err := r.db.Preload("Profile").Preload("Products").First(&user, ID).Error
+	err := r.db.Preload("Profile").First(&user, ID).Error
 
 	return user, err
 }

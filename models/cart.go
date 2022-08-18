@@ -7,7 +7,7 @@ type Cart struct {
 	ProductID     int                `json:"prouduct_id"`
 	Product       ProductCartRel     `json:"product"`
 	TransactionID int                `json:"-"`
-	Transaction   TransactionCartRel `json:"transaction"`
+	Transaction   TransactionCartRel `json:"-"`
 	Topping       []Topping          `json:"category" gorm:"many2many:cart_toppings"`
 	CreatedAt     time.Time          `json:"-"`
 	UpdatedAt     time.Time          `json:"-"`
