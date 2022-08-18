@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 	authdto "waysbuck/dto/auth"
 	dto "waysbuck/dto/result"
@@ -112,6 +113,8 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+
+	user.Profile.Image = os.Getenv("PATH_FILE") + user.Profile.Image
 
 	//. For Check password
 	isValid := bcrypt.CheckPasswordHash(request.Password, user.Password)
