@@ -5,11 +5,12 @@ import "time"
 type Transaction struct {
 	ID        int            `json:"id" gorm:"primary_key:auto_increment"`
 	Amount    int            `json:"amount"`
+	Status    string         `json:"status"`
 	UserID    int            `json:"user_id"`
 	User      UserProfileRel `json:"user"`
 	Carts     []Cart         `json:"cart"`
 	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type TransactionCartRel struct {

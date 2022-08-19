@@ -10,5 +10,5 @@ type Cart struct {
 	Transaction   TransactionCartRel `json:"-"`
 	Toppings      []Topping          `json:"toppings" gorm:"many2many:cart_toppings"`
 	CreatedAt     time.Time          `json:"-"`
-	UpdatedAt     time.Time          `json:"-"`
+	UpdatedAt     time.Time          `json:"updated_at"`
 }
