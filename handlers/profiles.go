@@ -25,6 +25,26 @@ func HandlerProfile(ProfileRepository repositories.ProfileRepository) *handlerPr
 	return &handlerProfile{ProfileRepository}
 }
 
+//. FindProfiles Method
+func (h *handlerProfile) FindProfiles(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	profiles, err := h.ProfileRepository.FindProfiles()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Status: http.StatusOK, Data: profiles}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 //. GetProfile method
 func (h *handlerProfile) GetProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
