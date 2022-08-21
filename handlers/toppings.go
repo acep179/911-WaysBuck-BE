@@ -97,8 +97,6 @@ func (h *handlerTopping) CreateTopping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	topping, _ = h.ToppingRepository.GetTopping(topping.ID)
-
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Status: http.StatusOK, Data: convertResponse(data)}
 	json.NewEncoder(w).Encode(response)

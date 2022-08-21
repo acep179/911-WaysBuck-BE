@@ -17,3 +17,11 @@ type LoginResponse struct {
 	Token    string                 `gorm:"type: varchar(255)" json:"token"`
 	Profile  models.ProfileResponse `json:"profile"`
 }
+
+type CheckAuthResponse struct {
+	Id       int                    `gorm:"type: int" json:"id"`
+	FullName string                 `gorm:"type: varchar(255)" json:"fullname"`
+	Email    string                 `gorm:"type: varchar(255)" json:"email"`
+	Status   string                 `gorm:"type: varchar(50)"  json:"status"`
+	Profile  models.ProfileResponse `json:"profile"`
+}

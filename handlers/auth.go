@@ -73,16 +73,14 @@ func (h *handlerAuth) Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 	}
 
-	//. Convert to Struck Register Response
-	registerResponse := authdto.RegisterResponse{
-		ID:       data.ID,
-		FullName: data.FullName,
-		Email:    data.Email,
-		Password: data.Password,
+	profile := models.Profile{
+		UserID: data.ID,
 	}
+	//. create nil profile column
+	h.AuthRepository.CreateNilProfile(profile)
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Status: http.StatusOK, Data: registerResponse}
+	response := dto.SuccessResult{Status: http.StatusOK, Data: profile}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -151,4 +149,34 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 	response := dto.SuccessResult{Status: http.StatusOK, Data: loginResponse}
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func (h *handlerAuth) CheckAuth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userId := int(userInfo["id"].(float64))
+
+	// Check User by Id
+	user, err := h.AuthRepository.Getuser(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	user.Profile.Image = os.Getenv("PATH_FILE") + user.Profile.Image
+
+	CheckAuthResponse := authdto.CheckAuthResponse{
+		Id:       user.ID,
+		FullName: user.FullName,
+		Email:    user.Email,
+		Status:   user.Status,
+		Profile:  user.Profile,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response := dto.SuccessResult{Status: http.StatusOK, Data: CheckAuthResponse}
+	json.NewEncoder(w).Encode(response)
 }
