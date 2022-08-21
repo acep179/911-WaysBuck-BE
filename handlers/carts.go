@@ -3,8 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	cartsdto "waysbuck/dto/cart"
 	dto "waysbuck/dto/result"
+	"waysbuck/models"
 	"waysbuck/repositories"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type handlerCart struct {
@@ -30,5 +34,44 @@ func (h *handlerCart) FindCarts(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Status: http.StatusOK, Data: carts}
 
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *handlerCart) CreateCart(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	request := new(cartsdto.CartRequest)
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	validation := validator.New()
+	err := validation.Struct(request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	cart := models.Cart{
+		ProductID:     request.ProductID,
+		TransactionID: request.TransactionID,
+	}
+
+	data, err := h.CartRepository.CreateCart(cart)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Status: http.StatusOK, Data: data}
 	json.NewEncoder(w).Encode(response)
 }

@@ -8,6 +8,7 @@ import (
 
 type CartRepository interface {
 	FindCarts() ([]models.Cart, error)
+	CreateCart(models.Cart) (models.Cart, error)
 }
 
 func RepositoryCart(db *gorm.DB) *repository {
@@ -19,4 +20,10 @@ func (r *repository) FindCarts() ([]models.Cart, error) {
 	err := r.db.Preload("Product").Preload("Toppings").Find(&carts).Error
 
 	return carts, err
+}
+
+func (r *repository) CreateCart(cart models.Cart) (models.Cart, error) {
+	err := r.db.Create(&cart).Error
+
+	return cart, err
 }
