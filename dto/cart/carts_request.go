@@ -1,6 +1,8 @@
 package cartsdto
 
 type CartRequest struct {
-	ProductID     int `json:"product_id" form:"product_id" validate:"required"`
-	TransactionID int `json:"transaction_id" form:"transaction_id"`
+	SubTotal      int   `json:"subtotal"`
+	ProductID     int   `json:"product_id" form:"product_id" validate:"required"`
+	ToppingID     []int `json:"topping_id" gorm:"-"`
+	TransactionID int   `json:"transaction_id" form:"transaction_id"`
 }

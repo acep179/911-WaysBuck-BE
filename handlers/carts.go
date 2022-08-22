@@ -58,9 +58,29 @@ func (h *handlerCart) CreateCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestForm := models.Cart{
+		ProductID:     request.ProductID,
+		TransactionID: request.TransactionID,
+		SubTotal:      request.SubTotal,
+		ToppingID:     request.ToppingID,
+	}
+
+	validatee := validator.New()
+	errr := validatee.Struct(requestForm)
+	if errr != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	topping, _ := h.CartRepository.FindToppingsID(request.ToppingID)
+
 	cart := models.Cart{
 		ProductID:     request.ProductID,
 		TransactionID: request.TransactionID,
+		SubTotal:      request.SubTotal,
+		Toppings:      topping,
 	}
 
 	data, err := h.CartRepository.CreateCart(cart)
