@@ -10,14 +10,14 @@ type User struct {
 	Email       string               `json:"email" gorm:"type: varchar(255)"`
 	Password    string               `json:"password" gorm:"type: varchar(255)"`
 	Status      string               `json:"status"`
-	Profile     ProfileResponse      `json:"profile"`
+	Profile     ProfileResponse      `json:"profile" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Transaction []TransactionUserRel `json:"transaction"`
 	CreatedAt   time.Time            `json:"-"`
 	UpdatedAt   time.Time            `json:"-"`
 }
 
-//todo relation to the another table
-//ctt atribut yang di tulis harus sama
+// todo relation to the another table
+// ctt atribut yang di tulis harus sama
 type UserProfileRel struct {
 	ID       int    `json:"id"`
 	FullName string `json:"fullName"`
