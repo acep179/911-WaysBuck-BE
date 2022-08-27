@@ -33,11 +33,6 @@ func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.ProductRepository.FindProducts()
 
-	for i, p := range products {
-		imagePath := os.Getenv("PATH_FILE") + p.Image
-		products[i].Image = imagePath
-	}
-
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
