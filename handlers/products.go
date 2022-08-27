@@ -146,6 +146,13 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	product, err := h.ProductRepository.GetProduct(id)
 
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	// Declare Context Background, Cloud Name, API Key, API Secret ...
 	var ctx = context.Background()
 	var CLOUD_NAME = os.Getenv("CLOUD_NAME")
@@ -160,13 +167,6 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-	}
-
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
 	}
 
 	if len(request.Title) > 0 {
