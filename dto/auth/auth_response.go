@@ -20,7 +20,7 @@ type LoginResponse struct {
 
 type CheckAuthResponse struct {
 	Id       int                    `gorm:"type: int" json:"id"`
-	FullName string                 `gorm:"type: varchar(255)" json:"fullname"`
+	FullName string                 `gorm:"type: varchar(255)" json:"fullName"`
 	Email    string                 `gorm:"type: varchar(255)" json:"email"`
 	Status   string                 `gorm:"type: varchar(50)"  json:"status"`
 	Profile  models.ProfileResponse `json:"profile"`
